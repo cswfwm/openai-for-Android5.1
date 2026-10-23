@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AI Chat Mini</string>
+    <string name="hint_input">输入消息…</string>
+    <string name="settings">设置</string>
+    <string name="label_api_key">API Key</string>
+    <string name="label_base_url">Base URL</string>
+    <string name="save">保存</string>
+    <string name="saved">已保存</string>
+    <string name="error_no_key">请先在设置中填写 API Key</string>
+</resources>

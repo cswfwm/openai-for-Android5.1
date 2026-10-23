@@ -1,0 +1,12 @@
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-keep class com.google.gson.** { *; }
+-keep class retrofit2.** { *; }
+-keepattributes Signature, *Annotation*, InnerClasses, EnclosingMethod
+-keepclassmembers class * { @retrofit2.http.* *; }
+-keep class com.aichat.mini.api.model.** { *; }
+
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+-dontwarn javax.annotation.**

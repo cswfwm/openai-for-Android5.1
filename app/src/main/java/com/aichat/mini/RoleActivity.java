@@ -52,7 +52,7 @@ public class RoleActivity extends AppCompatActivity {
             etPrompt.setText(role.systemPrompt);
         }
         new AlertDialog.Builder(this)
-                .setTitle(isEdit ? "编辑角色" : R.string.new_role)
+                .setTitle(isEdit ? "编辑角色" : getString(R.string.new_role))
                 .setView(form)
                 .setPositiveButton("保存", (d, w) -> {
                     String name = etName.getText().toString().trim();

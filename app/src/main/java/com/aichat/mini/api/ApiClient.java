@@ -22,6 +22,7 @@ public class ApiClient {
     private static final String KEY_BASE_URL = "base_url";
     private static final String DEFAULT_BASE_URL = "https://api.hcnsec.cn";
     private static final String KEY_MODELS = "models";
+    private static final String KEY_SELECTED_MODEL = "selected_model";
     private static final String KEY_TOTAL_TOKENS = "total_tokens";
     private static final String KEY_TODAY_TOKENS = "today_tokens";
     private static final String KEY_TODAY_DATE = "today_date";
@@ -103,6 +104,9 @@ public class ApiClient {
     public void setModelsList(List<String> ids) {
         prefs.edit().putString(KEY_MODELS, new com.google.gson.Gson().toJson(ids)).apply();
     }
+
+    public String getSelectedModel() { return prefs.getString(KEY_SELECTED_MODEL, ""); }
+    public void setSelectedModel(String model) { prefs.edit().putString(KEY_SELECTED_MODEL, model).apply(); }
 
     public void addUsage(int tokens) {
         if (tokens <= 0) return;

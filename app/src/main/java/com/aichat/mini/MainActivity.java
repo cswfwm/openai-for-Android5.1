@@ -5,9 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -28,9 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private MessageAdapter adapter;
     private List<ChatModels.Message> messages = new ArrayList<>();
     private ApiClient apiClient;
-    private Spinner spModel;
     private TextView tvRole, tvStats;
-    private List<String> modelList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         tvStats = findViewById(R.id.tvStats);
         tvRole = findViewById(R.id.tvRole);
-        spModel = findViewById(R.id.spModel);
 
-        setupModelSpinner();
         refreshStats();
 
         tvRole.setOnClickListener(v -> showRolePicker());
@@ -57,14 +51,6 @@ public class MainActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(apiClient.getApiKey())) {
             startActivity(new Intent(this, SettingsActivity.class));
         }
-    }
-
-    private void setupModelSpinner() {
-        modelList = apiClient.getModelsList();
-        ArrayAdapter<String> a = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, modelList);
-        a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spModel.setAdapter(a);
     }
 
     private void refreshStats() {
@@ -96,8 +82,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         refreshStats();
         updateRoleLabel(Role.find(this, Role.getCurrentRoleId(this)));
-        // 重新加载模型（设置页可能刚拉取过）
-        setupModelSpinner();
     }
 
     @Override
@@ -137,9 +121,9 @@ public class MainActivity extends AppCompatActivity {
         et.setText("");
 
         ChatModels.ChatRequest req = new ChatModels.ChatRequest();
-        int sel = spModel.getSelectedItemPosition();
-        if (sel >= 0 && sel < modelList.size()) {
-            req.model = modelList.get(sel);
+        String sel = apiClient.getSelectedModel();
+        if (!TextUtils.isEmpty(sel)) {
+            req.model = sel;
         }
         Role role = Role.find(this, Role.getCurrentRoleId(this));
         List<ChatModels.Message> sendMsgs = new ArrayList<>();

@@ -7,4 +7,15 @@
     <string name="save">保存</string>
     <string name="saved">已保存</string>
     <string name="error_no_key">请先在设置中填写 API Key</string>
+    <string name="model_hint">选择模型</string>
+    <string name="role_hint">选择角色</string>
+    <string name="roles">角色卡</string>
+    <string name="new_role">新建角色</string>
+    <string name="role_name">角色名称</string>
+    <string name="role_prompt">角色人设（system 提示词）</string>
+    <string name="delete_role">删除</string>
+    <string name="role_today">今日 %1$s / 累计 %2$s</string>
+    <string name="token_usage">↑%1$d ↓%2$d = %3$d tokens</string>
+    <string name="fetching_models">正在识别可用模型…</string>
+    <string name="no_models">未识别到模型</string>
 </resources>

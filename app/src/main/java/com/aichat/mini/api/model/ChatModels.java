@@ -32,4 +32,12 @@ public class ChatModels {
         public int completion_tokens;
         public int total_tokens;
     }
+
+    public static class ModelList {
+        public List<Model> data;
+    }
+
+    public static class Model {
+        public String id;
+    }
 }

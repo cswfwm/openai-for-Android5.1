@@ -5,11 +5,17 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.aichat.mini.api.ApiClient;
 import com.aichat.mini.api.model.ChatModels;
+import com.aichat.mini.api.model.Role;
 import com.aichat.mini.ui.MessageAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,18 +28,76 @@ public class MainActivity extends AppCompatActivity {
     private MessageAdapter adapter;
     private List<ChatModels.Message> messages = new ArrayList<>();
     private ApiClient apiClient;
+    private Spinner spModel;
+    private TextView tvRole, tvStats;
+    private List<String> modelList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         apiClient = ApiClient.get(this);
         rvMessages = findViewById(R.id.rvMessages);
         adapter = new MessageAdapter(messages);
         rvMessages.setAdapter(adapter);
 
+        tvStats = findViewById(R.id.tvStats);
+        tvRole = findViewById(R.id.tvRole);
+        spModel = findViewById(R.id.spModel);
+
+        setupModelSpinner();
+        refreshStats();
+
+        tvRole.setOnClickListener(v -> showRolePicker());
+
         findViewById(R.id.btnSend).setOnClickListener(v -> sendMessage());
+
+        // 未配置 key -> 自动跳设置
+        if (TextUtils.isEmpty(apiClient.getApiKey())) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        }
+    }
+
+    private void setupModelSpinner() {
+        modelList = apiClient.getModelsList();
+        ArrayAdapter<String> a = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, modelList);
+        a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spModel.setAdapter(a);
+    }
+
+    private void refreshStats() {
+        int today = apiClient.getTodayTokens();
+        int total = apiClient.getTotalTokens();
+        tvStats.setText(getString(R.string.role_today, String.valueOf(today), String.valueOf(total)));
+    }
+
+    private void showRolePicker() {
+        List<Role> roles = Role.all(this);
+        String[] names = new String[roles.size()];
+        for (int i = 0; i < roles.size(); i++) names[i] = roles.get(i).emoji + " " + roles.get(i).name;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.roles)
+                .setItems(names, (d, which) -> {
+                    Role r = roles.get(which);
+                    Role.setCurrentRoleId(this, r.id);
+                    updateRoleLabel(r);
+                })
+                .show();
+    }
+
+    private void updateRoleLabel(Role r) {
+        if (r != null) tvRole.setText(r.emoji + " " + r.name);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshStats();
+        updateRoleLabel(Role.find(this, Role.getCurrentRoleId(this)));
+        // 重新加载模型（设置页可能刚拉取过）
+        setupModelSpinner();
     }
 
     @Override
@@ -48,14 +112,18 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
+        if (item.getItemId() == R.id.action_roles) {
+            startActivity(new Intent(this, RoleActivity.class));
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
     private void sendMessage() {
-        android.widget.EditText et = findViewById(R.id.etInput);
+        EditText et = findViewById(R.id.etInput);
         String text = et.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
-        
+
         if (TextUtils.isEmpty(apiClient.getApiKey())) {
             Toast.makeText(this, R.string.error_no_key, Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SettingsActivity.class));
@@ -69,8 +137,18 @@ public class MainActivity extends AppCompatActivity {
         et.setText("");
 
         ChatModels.ChatRequest req = new ChatModels.ChatRequest();
-        req.messages = new ArrayList<>(messages);
-        
+        int sel = spModel.getSelectedItemPosition();
+        if (sel >= 0 && sel < modelList.size()) {
+            req.model = modelList.get(sel);
+        }
+        Role role = Role.find(this, Role.getCurrentRoleId(this));
+        List<ChatModels.Message> sendMsgs = new ArrayList<>();
+        if (role != null && !TextUtils.isEmpty(role.systemPrompt)) {
+            sendMsgs.add(new ChatModels.Message("system", role.systemPrompt));
+        }
+        sendMsgs.addAll(messages);
+        req.messages = sendMsgs;
+
         String auth = "Bearer " + apiClient.getApiKey();
         String url = apiClient.buildChatUrl();
 
@@ -81,8 +159,18 @@ public class MainActivity extends AppCompatActivity {
                     if (resp.isSuccessful() && resp.body() != null && !resp.body().choices.isEmpty()) {
                         ChatModels.Message reply = resp.body().choices.get(0).message;
                         messages.add(reply);
-                        adapter.notifyItemInserted(messages.size() - 1);
-                        rvMessages.scrollToPosition(messages.size() - 1);
+                        int idx = messages.size() - 1;
+                        adapter.notifyItemInserted(idx);
+                        rvMessages.scrollToPosition(idx);
+
+                        if (resp.body().usage != null) {
+                            int p = resp.body().usage.prompt_tokens;
+                            int c = resp.body().usage.completion_tokens;
+                            int t = resp.body().usage.total_tokens;
+                            apiClient.addUsage(t);
+                            adapter.setUsage(idx, getString(R.string.token_usage, p, c, t));
+                            refreshStats();
+                        }
                     } else {
                         showError("API Error: " + resp.code());
                     }
@@ -94,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void showError(String msg) {
         messages.add(new ChatModels.Message("system", "[Error] " + msg));
         adapter.notifyItemInserted(messages.size() - 1);

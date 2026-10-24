@@ -22,4 +22,13 @@
         android:textSize="16sp"
         android:textColor="?attr/colorOnSurface"
         android:padding="12dp" />
+
+    <TextView
+        android:id="@+id/tvUsage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.5"
+        android:visibility="gone" />
 </LinearLayout>

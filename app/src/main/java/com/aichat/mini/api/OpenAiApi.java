@@ -3,6 +3,7 @@ package com.aichat.mini.api;
 import com.aichat.mini.api.model.ChatModels;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Url;
@@ -13,5 +14,11 @@ public interface OpenAiApi {
         @Url String url,
         @Header("Authorization") String auth,
         @Body ChatModels.ChatRequest body
+    );
+
+    @GET
+    Call<ChatModels.ModelList> models(
+        @Url String url,
+        @Header("Authorization") String auth
     );
 }

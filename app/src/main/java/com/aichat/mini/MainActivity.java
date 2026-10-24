@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
         tvRole.setOnClickListener(v -> showRolePicker());
 
+        findViewById(R.id.btnMenu).setOnClickListener(v -> showSettingsMenu());
+
         findViewById(R.id.btnSend).setOnClickListener(v -> sendMessage());
 
         // 未配置 key -> 自动跳设置
@@ -75,6 +77,44 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRoleLabel(Role r) {
         if (r != null) tvRole.setText(r.emoji + " " + r.name);
+    }
+
+    private void showSettingsMenu() {
+        String[] items = {
+            "⚙️  " + getString(R.string.roles),
+            "🤖  " + getString(R.string.model_choose),
+            "🌐  " + getString(R.string.api_settings),
+            "🔑  " + getString(R.string.label_api_key)
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.menu_settings)
+                .setItems(items, (d, which) -> {
+                    switch (which) {
+                        case 0: startActivity(new Intent(this, RoleActivity.class)); break;
+                        case 1: showModelPicker(); break;
+                        case 2: startActivity(new Intent(this, SettingsActivity.class)); break;
+                        case 3: startActivity(new Intent(this, SettingsActivity.class)); break;
+                    }
+                })
+                .show();
+    }
+
+    private void showModelPicker() {
+        List<String> models = apiClient.getModelsList();
+        if (models.isEmpty()) {
+            Toast.makeText(this, R.string.no_models, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int selected = models.indexOf(apiClient.getSelectedModel());
+        if (selected < 0) selected = 0;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.model_choose)
+                .setSingleChoiceItems(models.toArray(new String[0]), selected, (d, which) -> {
+                    apiClient.setSelectedModel(models.get(which));
+                    d.dismiss();
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     @Override

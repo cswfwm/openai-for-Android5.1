@@ -19,4 +19,7 @@
     <string name="fetching_models">正在识别可用模型…</string>
     <string name="no_models">未识别到模型</string>
     <string name="models_found">可用模型 %1$d 个，请勾选：</string>
+    <string name="menu_settings">设置</string>
+    <string name="model_choose">模型选择</string>
+    <string name="api_settings">API 地址</string>
 </resources>

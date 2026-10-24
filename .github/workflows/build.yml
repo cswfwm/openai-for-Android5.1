@@ -26,6 +26,14 @@ jobs:
           ls "$SDK"
           echo "sdk.dir=$SDK" > local.properties
 
+      - name: Generate signing keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore app/keystore.p12 -storetype PKCS12 \
+            -alias aichat -keyalg RSA -keysize 2048 -validity 36500 \
+            -storepass aichat123 -keypass aichat123 \
+            -dname "CN=AiChat Mini, OU=Dev, O=AiChat, L=CN, ST=CN, C=CN"
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
